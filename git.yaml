@@ -1,0 +1,16 @@
+- name: Install git
+  hosts: all
+  become: true
+  become_user: root
+  vars:
+    ansible_user: ec2-user
+
+  tasks:
+    - name: update dnf repo
+      command: sudo dnf update
+
+    - name: Install git
+      dnf:
+        name: git
+        state: latest
+      become: true

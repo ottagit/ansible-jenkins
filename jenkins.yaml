@@ -1,0 +1,57 @@
+- name: Install Jenkins
+  hosts: all
+  become: true
+  become_user: root
+  vars:
+    ansible_user: ec2-user
+
+  tasks:
+    - name: update dnf repo
+      command: sudo dnf update
+
+    - name: Install pip
+      dnf:
+        name: python3-pip
+        state: latest
+      become: true
+
+    - name: Add Jenkins repo
+      get_url:
+        url: https://pkg.jenkins.io/redhat-stable/jenkins.repo
+        dest: /etc/yum.repos.d/jenkins.repo
+      become: true
+
+    - name: Import Jenkins key
+      rpm_key:
+        key: https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
+        state: present
+      become: true
+
+    - name: update dnf repo
+      command: sudo dnf update
+
+    - name: Install Java17
+      dnf:
+        name: java-17-amazon-corretto.x86_64
+        state: latest
+      become: true
+
+    - name: Install Jenkins
+      dnf:
+        name: jenkins
+        state: latest
+      become: true
+
+    - name: Start Jenkins
+      service:
+        enabled: true
+        name: jenkins
+        state: started
+      tags: start-jenkins
+
+    - name: Stop Jenkins
+      service:
+        name: jenkins
+        state: stopped
+      become: true
+      tags: [ never, stop-jenkins ]

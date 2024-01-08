@@ -1,0 +1,45 @@
+---
+- hosts: all
+  become: true
+  become_user: root
+  vars:
+    ansible_user: ec2-user
+    group: docker
+
+  tasks:
+    - name: Install pre-requisite packages
+      yum:
+        name: "{{ item }}"
+        state: latest
+      with_items:
+        - yum-utils
+        - device-mapper-persistent-data
+        - lvm2
+
+    - name: Configure Docker CE repo
+      get_url:
+        url: https://download.docker.com/linux/centos/docker-ce.repo
+        dest: /etc/yum.repos.d/docker-ce.repo
+        mode: 0644
+
+    - name: Install Docker latest version
+      yum:
+        name: docker
+        state: present
+
+    - name: Create docker group
+      group:
+        name: "{{ group }}"
+        state: present
+
+    - name: Add remote user to docker group
+      user:
+        name: "{{ ansible_user }}"
+        groups: "{{ group }}"
+        append: yes
+
+    - name: Start and enable docker service
+      service:
+        name: docker
+        state: started
+        enabled: true
